@@ -2048,6 +2048,7 @@ export default function App() {
 
   return (
     <div className="app-wrap">
+      { id: "financeiro", icon: "💰", label: "Financeiro" },
       <FontLink />
 
       {/* HEADER */}
@@ -2074,6 +2075,7 @@ export default function App() {
           {tab === "budgets" && <BudgetsList budgets={budgets} />}
           {tab === "clients" && <Clients clients={clients} onAdd={c => setClients(prev => [...prev, c])} />}
           {tab === "plans"   && <Plans />}
+          {tab === "financeiro" && <Financeiro />}
         </>
       )}
 
@@ -2092,5 +2094,138 @@ export default function App() {
       {/* TOAST */}
       {toast && <div className="toast">{toast}</div>}
     </div>
-  );
+  
+  
+  // ─── COMPONENTE FINANCEIRO ─────────────────────────────────────────
+    function Financeiro() {
+      const [financeiro, definirFinanceiro] = useState({ receitas: [], despesas: [], });
+      const [novaReceita, definirNovaReceita] = useState({ cliente: "", valor: 0, data: "", metodo: "pix", status: "pendente" });
+      const [novaDespesa, definirNovaDespesa] = useState({ categoria: "", descricao: "", valor: 0, data: "" });
+      const [abanoFinanceiro, definirAbanoFinanceiro] = useState("dashboard");
+    
+      const adicionarReceita = () => {
+            if (!novaReceita.cliente || novaReceita.valor <= 0) return;
+                  definirFinanceiro(prev => ({ ...prev, receitas: [...prev.receitas, { id: Date.now(), ...novaReceita }] }));
+            definirNovaReceita({ cliente: "", valor: 0, data: "", metodo: "pix", status: "pendente" });
+      };
+    
+      const adicionarDespesa = () => {
+            if (!novaDespesa.categoria || novaDespesa.valor <= 0) return;
+                  definirFinanceiro(prev => ({ ...prev, despesas: [...prev.despesas, { id: Date.now(), ...novaDespesa }] }));
+            definirNovaDespesa({ categoria: "", descricao: "", valor: 0, data: "" });
+      };
+    
+      const totalReceitas = financeiro.receitas.reduce((acc, r) => acc + r.valor, 0);
+      const totalDespesas = financeiro.despesas.reduce((acc, d) => acc + d.valor, 0);
+      const saldo = totalReceitas - totalDespesas;
+    
+      return (
+            <div style={{ padding: "20px" }}>
+                    <div className="screen-title">💰 Gestão Financeira</div>div>
+            
+              {/* ── DASHBOARD ── */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+                          <div className="card" style={{ background: "rgba(0,229,160,.1)", borderColor: "var(--green)" }}>
+                                    <div style={{ fontSize: "12px", color: "var(--txt-muted)" }}>Receitas</div>div>
+                                    <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--green)", marginTop: "8px" }}>R$ {totalReceitas.toFixed(2)}</div>div>
+                          </div>div>
+                          <div className="card" style={{ background: "rgba(255,77,109,.1)", borderColor: "var(--red)" }}>
+                                    <div style={{ fontSize: "12px", color: "var(--txt-muted)" }}>Despesas</div>div>
+                                    <div style={{ fontSize: "24px", fontWeight: "700", color: "#FF4D6D", marginTop: "8px" }}>R$ {totalDespesas.toFixed(2)}</div>div>
+                          </div>div>
+                          <div className="card" style={{ gridColumn: "1 / -1", background: saldo >= 0 ? "rgba(0,212,255,.1)" : "rgba(255,77,109,.15)", borderColor: saldo >= 0 ? "var(--aqua)" : "#FF4D6D" }}>
+                                    <div style={{ fontSize: "12px", color: "var(--txt-muted)" }}>Saldo Líquido</div>div>
+                                    <div style={{ fontSize: "28px", fontWeight: "800", color: saldo >= 0 ? "var(--aqua)" : "#FF4D6D", marginTop: "8px" }}>R$ {saldo.toFixed(2)}</div>div>
+                          </div>div>
+                  </div>div>
+            
+              {/* ── ABAS ── */}
+                  <div style={{ display: "flex", gap: "8px", marginBottom: "16px", borderBottom: "1px solid var(--border)", paddingBottom: "12px" }}>
+                          <button onClick={() => definirAbanoFinanceiro("receitas")} style={{ padding: "8px 14px", background: abanoFinanceiro === "receitas" ? "var(--aqua)" : "transparent", color: abanoFinanceiro === "receitas" ? "black" : "var(--txt)", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}>
+                                    ✅ Receitas
+                          </button>button>
+                          <button onClick={() => definirAbanoFinanceiro("despesas")} style={{ padding: "8px 14px", background: abanoFinanceiro === "despesas" ? "var(--aqua)" : "transparent", color: abanoFinanceiro === "despesas" ? "black" : "var(--txt)", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}>
+                                    ❌ Despesas
+                          </button>button>
+                  </div>div>
+            
+              {/* ── RECEITAS ── */}
+              {abanoFinanceiro === "receitas" && (
+                      <div>
+                                <div className="card" style={{ marginBottom: "16px" }}>
+                                            <div style={{ fontSize: "13px", fontWeight: "600", marginBottom: "12px" }}>Nova Receita</div>div>
+                                            <input type="text" placeholder="Cliente" value={novaReceita.cliente} onChange={(e) => definirNovaReceita({...novaReceita, cliente: e.target.value})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }} />
+                                            <input type="number" placeholder="Valor" value={novaReceita.valor} onChange={(e) => definirNovaReceita({...novaReceita, valor: parseFloat(e.target.value)})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }} />
+                                            <input type="date" value={novaReceita.data} onChange={(e) => definirNovaReceita({...novaReceita, data: e.target.value})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }} />
+                                            <select value={novaReceita.metodo} onChange={(e) => definirNovaReceita({...novaReceita, metodo: e.target.value})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }}>
+                                                          <option value="pix">PIX</option>option>
+                                                          <option value="cartao">Cartão</option>option>
+                                                          <option value="dinheiro">Dinheiro</option>option>
+                                                          <option value="cheque">Cheque</option>option>
+                                            </select>select>
+                                            <button onClick={adicionarReceita} style={{ width: "100%", padding: "10px", background: "var(--green)", color: "#000", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}>
+                                                          ➕ Adicionar Receita
+                                            </button>button>
+                                </div>div>
+                      
+                                <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+                                  {financeiro.receitas.map((r, i) => (
+                                      <div key={i} className="card" style={{ marginBottom: "8px", padding: "12px" }}>
+                                                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                                                                        <div>
+                                                                                            <div style={{ fontSize: "12px", color: "var(--txt-muted)" }}>{r.cliente}</div>div>
+                                                                                            <div style={{ fontSize: "14px", fontWeight: "600", marginTop: "4px" }}>R$ {r.valor.toFixed(2)}</div>div>
+                                                                                            <div style={{ fontSize: "11px", color: "var(--txt-muted)", marginTop: "4px" }}>{r.data} • {r.metodo}</div>div>
+                                                                        </div>div>
+                                                                        <div style={{ fontSize: "11px", padding: "4px 8px", background: r.status === "pago" ? "rgba(0,229,160,.2)" : "rgba(255,140,66,.2)", color: r.status === "pago" ? "var(--green)" : "var(--laranja)", borderRadius: "6px" }}>
+                                                                          {r.status === "pago" ? "✅ Pago" : "⏳ Pendente"}
+                                                                        </div>div>
+                                                      </div>div>
+                                      </div>div>
+                                    ))}
+                                </div>div>
+                      </div>div>
+                  )}
+            
+              {/* ── DESPESAS ── */}
+              {abanoFinanceiro === "despesas" && (
+                      <div>
+                                <div className="card" style={{ marginBottom: "16px" }}>
+                                            <div style={{ fontSize: "13px", fontWeight: "600", marginBottom: "12px" }}>Nova Despesa</div>div>
+                                            <select value={novaDespesa.categoria} onChange={(e) => definirNovaDespesa({...novaDespesa, categoria: e.target.value})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }}>
+                                                          <option value="">Selecione Categoria</option>option>
+                                                          <option value="quimicos">Produtos Químicos</option>option>
+                                                          <option value="reparo">Reparos</option>option>
+                                                          <option value="combustivel">Combustível</option>option>
+                                                          <option value="ferramentas">Ferramentas</option>option>
+                                                          <option value="outros">Outros</option>option>
+                                            </select>select>
+                                            <input type="text" placeholder="Descrição" value={novaDespesa.descricao} onChange={(e) => definirNovaDespesa({...novaDespesa, descricao: e.target.value})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }} />
+                                            <input type="number" placeholder="Valor" value={novaDespesa.valor} onChange={(e) => definirNovaDespesa({...novaDespesa, valor: parseFloat(e.target.value)})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }} />
+                                            <input type="date" value={novaDespesa.data} onChange={(e) => definirNovaDespesa({...novaDespesa, data: e.target.value})} style={{ width: "100%", padding: "10px", marginBottom: "8px", background: "var(--bg-input)", border: "1px solid var(--border)", borderRadius: "8px", color: "var(--txt)", fontSize: "13px" }} />
+                                            <button onClick={adicionarDespesa} style={{ width: "100%", padding: "10px", background: "#FF4D6D", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}>
+                                                          ➕ Adicionar Despesa
+                                            </button>button>
+                                </div>div>
+                      
+                                <div style={{ maxHeight: "300px", overflowY: "auto" }}>
+                                  {financeiro.despesas.map((d, i) => (
+                                      <div key={i} className="card" style={{ marginBottom: "8px", padding: "12px" }}>
+                                                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+                                                                        <div>
+                                                                                            <div style={{ fontSize: "12px", color: "var(--txt-muted)" }}>{d.categoria}</div>div>
+                                                                                            <div style={{ fontSize: "13px", fontWeight: "500", marginTop: "4px" }}>{d.descricao}</div>div>
+                                                                                            <div style={{ fontSize: "14px", fontWeight: "600", marginTop: "6px", color: "#FF4D6D" }}>R$ {d.valor.toFixed(2)}</div>div>
+                                                                                            <div style={{ fontSize: "11px", color: "var(--txt-muted)", marginTop: "4px" }}>{d.data}</div>div>
+                                                                        </div>div>
+                                                      </div>div>
+                                      </div>div>
+                                    ))}
+                                </div>div>
+                      </div>div>
+                  )}
+            </div>div>
+          );
+  }</div>
+      );
 }
